@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Digital Detective — A Visual Novel Engine" />
+    <title>Digital Detective</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Special+Elite&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div id="game-container" role="main" aria-label="Digital Detective game viewport">
+
+        <div id="background-layer" aria-hidden="true">
+            <div id="background-image"></div>
+            <div id="vignette-overlay"></div>
+            <div id="grain-overlay" aria-hidden="true"></div>
+        </div>
+
+        <div id="sprite-layer" aria-hidden="true">
+            <div id="sprite-left" class="sprite-slot" data-position="left"></div>
+            <div id="sprite-center" class="sprite-slot" data-position="center"></div>
+            <div id="sprite-right" class="sprite-slot" data-position="right"></div>
+        </div>
+
+        <div id="ui-layer">
+            <header id="hud" role="banner" aria-label="Game HUD">
+                <div id="hud-left">
+                    <span id="hud-case-icon" aria-hidden="true">⬡</span>
+                    <span id="hud-case-title">Case #001</span>
+                </div>
+                <div id="hud-center">
+                    <span id="hud-chapter-label">Chapter</span>
+                    <span id="hud-chapter-value">I</span>
+                </div>
+                <div id="hud-right">
+                    <button id="btn-log" class="hud-btn" aria-label="View dialogue log" title="Dialogue Log">📋</button>
+                    <button id="btn-save" class="hud-btn" aria-label="Save game" title="Save">💾</button>
+                    <button id="btn-settings" class="hud-btn" aria-label="Open settings" title="Settings">⚙</button>
+                    <button id="btn-menu" class="hud-btn" aria-label="Main menu" title="Main Menu">☰</button>
+                </div>
+            </header>
+
+            <div id="choice-panel" class="hidden" role="group" aria-label="Choose your response">
+                <div id="choice-header">
+                    <span class="choice-deco" aria-hidden="true">◈</span>
+                    <span id="choice-prompt-text">What will you do?</span>
+                    <span class="choice-deco" aria-hidden="true">◈</span>
+                </div>
+                <div id="choice-list"></div>
+            </div>
+
+            <section id="dialogue-box" role="region" aria-label="Dialogue" aria-live="polite" tabindex="0">
+                <div id="dialogue-frame">
+                    <div class="dialogue-rule top-rule" aria-hidden="true">
+                        <span class="rule-line"></span>
+                        <span class="rule-diamond">◆</span>
+                        <span class="rule-line"></span>
+                    </div>
+                    <div id="name-tag-wrapper" aria-label="Speaker">
+                        <div id="name-tag">
+                            <span id="name-tag-accent" aria-hidden="true"></span>
+                            <span id="speaker-name">???</span>
+                        </div>
+                    </div>
+                    <div id="dialogue-text-wrapper">
+                        <p id="dialogue-text" aria-label="Dialogue text"></p>
+                    </div>
+                    <div id="continue-indicator" class="hidden" aria-label="Press to continue" aria-hidden="true">
+                        <span id="continue-arrow">▼</span>
+                    </div>
+                    <div class="dialogue-rule bottom-rule" aria-hidden="true">
+                        <span class="rule-line"></span>
+                        <span class="rule-dot">· · ·</span>
+                        <span class="rule-line"></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="overlay-layer">
+
+            <!-- Main Menu -->
+            <div id="screen-main-menu" class="screen hidden" role="dialog" aria-modal="true" aria-label="Main Menu">
+                <canvas id="menu-rain-canvas" aria-hidden="true"></canvas>
+                <div class="screen-inner">
+
+                    <!-- LEFT — Logo & atmosphere -->
+                    <div id="menu-logo">
+                        <span class="menu-logo-sub">A Visual Novel</span>
+                        <h1 class="menu-logo-title" data-text="Digital">Digital<br /><em>Detective</em></h1>
+                        <div class="menu-logo-rule" aria-hidden="true"></div>
+                        <p id="menu-tagline">Sector 7. 02:14 AM. The rain hasn't stopped in three days.<br />Neither
+                            have you.</p>
+                    </div>
+
+                    <!-- RIGHT — Navigation -->
+                    <nav id="menu-nav" aria-label="Main menu navigation">
+                        <button class="menu-btn" id="menu-new-game">
+                            <span class="btn-num">01</span>New Investigation
+                        </button>
+                        <button class="menu-btn" id="menu-load-game">
+                            <span class="btn-num">02</span>Load Case File
+                        </button>
+                        <button class="menu-btn" id="menu-settings-main">
+                            <span class="btn-num">03</span>Settings
+                        </button>
+                        <button class="menu-btn" id="menu-credits">
+                            <span class="btn-num">04</span>Credits
+                        </button>
+                        <button class="menu-btn menu-btn--danger hidden" id="menu-return-title">
+                            <span class="btn-num">05</span>Return to Title
+                        </button>
+                        <button class="menu-btn menu-btn--exit" id="menu-quit-game">
+                            <span class="btn-num">06</span>Exit Game
+                        </button>
+                    </nav>
+
+                </div>
+                <div id="menu-footer" aria-hidden="true">
+                    <span>© Digital Detective Engine</span>
+                    <span>v1.0 — CLASSIFIED</span>
+                </div>
+            </div>
+
+            <!-- Save / Load -->
+            <div id="screen-save-load" class="screen hidden" role="dialog" aria-modal="true" aria-label="Save and Load">
+                <div class="screen-inner">
+                    <div class="screen-header">
+                        <h2 class="screen-title">Case Files</h2>
+                        <button class="btn-close-screen" id="close-save-load" aria-label="Close">✕</button>
+                    </div>
+                    <div id="save-load-tabs" role="tablist">
+                        <button class="tab-btn active" role="tab" data-tab="save" aria-selected="true">Save</button>
+                        <button class="tab-btn" role="tab" data-tab="load" aria-selected="false">Load</button>
+                    </div>
+                    <div id="save-slot-list" aria-label="Save slots"></div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="screen-settings" class="screen hidden" role="dialog" aria-modal="true" aria-label="Settings">
+                <div class="screen-inner">
+                    <div class="screen-header">
+                        <h2 class="screen-title">Settings</h2>
+                        <button class="btn-close-screen" id="close-settings" aria-label="Close">✕</button>
+                    </div>
+                    <div id="settings-body"></div>
+                </div>
+            </div>
+
+            <!-- Dialogue Log -->
+            <div id="screen-log" class="screen hidden" role="dialog" aria-modal="true" aria-label="Dialogue Log">
+                <div class="screen-inner">
+                    <div class="screen-header">
+                        <h2 class="screen-title">Case Notes</h2>
+                        <button class="btn-close-screen" id="close-log" aria-label="Close">✕</button>
+                    </div>
+                    <div id="log-body" aria-label="Dialogue history"></div>
+                </div>
+            </div>
+
+            <!-- Credits -->
+            <div id="screen-credits" class="screen hidden" role="dialog" aria-modal="true" aria-label="Credits">
+                <div class="screen-inner">
+                    <div class="screen-header">
+                        <h2 class="screen-title">Credits</h2>
+                        <button class="btn-close-screen" id="close-credits" aria-label="Close">✕</button>
+                    </div>
+                    <div id="credits-body">
+                        <div class="credits-block">
+                            <div class="credits-role">Direction &amp; Writing</div>
+                            <div class="credits-name">Digital Detective Team</div>
+                        </div>
+                        <div class="credits-divider">◆ ◆ ◆</div>
+                        <div class="credits-block">
+                            <div class="credits-role">Engine Development</div>
+                            <div class="credits-name">Visual Novel Engine v1.0</div>
+                        </div>
+                        <div class="credits-divider">◆ ◆ ◆</div>
+                        <div class="credits-block">
+                            <div class="credits-role">Art &amp; Character Design</div>
+                            <div class="credits-name">Digital Detective Studios</div>
+                        </div>
+                        <div class="credits-divider">◆ ◆ ◆</div>
+                        <div class="credits-block">
+                            <div class="credits-role">Music &amp; Sound</div>
+                            <div class="credits-name">Cyber Audio Division</div>
+                        </div>
+                        <div class="credits-divider">◆ ◆ ◆</div>
+                        <div class="credits-block">
+                            <div class="credits-role">Special Thanks</div>
+                            <div class="credits-name">To all who seek the truth</div>
+                        </div>
+                        <div class="credits-footer">
+                            <span class="credits-version">◈ Digital Detective © 2024 ◈</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="screen-loading" class="screen" role="status" aria-label="Loading">
+                <div class="screen-inner loading-inner">
+                    <div id="loading-badge">
+                        <span id="loading-icon" aria-hidden="true">⬡</span>
+                    </div>
+                    <p id="loading-text">Initialising Case File…</p>
+                    <div id="loading-bar-track" aria-hidden="true">
+                        <div id="loading-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="core/Engine.js"></script>
+</body>
+
+</html>
